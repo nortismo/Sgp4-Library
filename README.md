@@ -1,5 +1,5 @@
 # Sgp4-Library
-Library for calculating satellites positions and predicting overpasses.
+Library for calculating satellite positions and predicting overpasses.
 Currently only support for ESP8266.
 
 # Credits
