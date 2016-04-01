@@ -7,7 +7,7 @@
 
 /*
 This file contains miscellaneous functions required for calculating visible satellites.
-Some functions were originally written for Matlab as companion code for "Fundamentals of Astrodynamics 
+Some functions were originally written for Matlab as companion code for "Fundamentals of Astrodynamics
 and Applications" by David Vallado (2007). (w) 719-573-2600, email dvallado@agi.com
 
 Ported to C++ by Hopperpop with some modifications, November 2015.
@@ -139,22 +139,24 @@ int16_t Sgp4::visible(bool& notdark, double& deltaphi){
 
     double rsun[3];   //vector between earth and sun
     double razell[3];
-    
+
     sun(jdC, rsun);  //calculate sun poistion vector
     rv2azel(rsun, siteLatRad, siteLonRad, siteAlt, jdC, razell);  //calc sun satEl
-    
-	notdark = (razell[2] > -0.10471975511966); //sun aboven -6°  => not dark enough
-    
+
+    sunEl = razell[2] * 180 / pi;
+    sunAz = razell[1] * 180 / pi;
+	  notdark = (razell[2] > sunoffset); //sun aboven -6°  => not dark enough
+
     double rsunsat[3]; //vector between sat and sun
     double rearth[3];
     double magsunsat, magearth;
     double phiearth, phisun, phi;
-	double rnomearth, rnomsun;
+	  double rnomearth, rnomsun;
 
     rearth[0] = -ro[0];
     rearth[1] = -ro[1];
     rearth[2] = -ro[2];
-    
+
     rsunsat[0] = rsun[0] + rearth[0];
     rsunsat[1] = rsun[1] + rearth[1];
     rsunsat[2] = rsun[2] + rearth[2];
@@ -166,29 +168,27 @@ int16_t Sgp4::visible(bool& notdark, double& deltaphi){
     phisun = asin(sunradius/magsunsat);
 
     phi = acos(dot(rearth,rsunsat)/magsunsat/magearth);
-	deltaphi = phi - phisun - phiearth;
 
     if (phiearth > phisun && phi < phiearth - phisun){   //umbral eclipse
         return 0;
     }
 
-	rnomearth = tan(phiearth);
-	rnomsun = tan(phisun);
 
     if (phiearth < phisun && phi < phisun - phiearth){  //partial eclipse
-        return (int16_t)((1-pow(phiearth/phisun,2.0))*1000);
+        return (int16_t)(( 1 - phiearth*phiearth/(phisun*phisun) )*1000);  //approach to the surface coverage with a square sun and earth
     }
 
     if (fabs(phiearth-phisun) < phi && phi < phiearth + phisun){  //penumbral eclipse
-        double phiearth2 = pow(phiearth,2.0);
-        double phisun2 = pow(phisun,2.0);
-        double phi2 = pow(phi,2.0);
-        return (int16_t)(((1-(phiearth2*acos((phi2+phiearth2-phisun2)/(2*phi*phiearth))/(phisun2*pi)+acos((phi2-phiearth2+phisun2)/(2*phi*phisun))/pi-sqrt((-phi+phiearth+phisun)*(phi+phiearth-phisun)*(phi-phiearth+phisun)*(phi+phiearth+phisun))/(pi*phisun2*2)))*1000));
-  
+        if (phiearth > phisun){
+            return (int16_t)(( (phisun+phi-phiearth)/(phisun*2.0) )*1000);  //approach to the surface coverage with a square sun and earth
+        }else{
+            return (int16_t)(( 1 - phiearth*(phisun - phi + phiearth)/(2.0*phisun*phisun) )*1000);  //approach to the surface coverage with a square sun and earth
+        }
+
     }
 
     return 1000;  //no eclipse => visible
-    
+
 }
 
 int16_t Sgp4::visible() {
@@ -202,5 +202,3 @@ int16_t Sgp4::visible() {
 		return viss;
 	}
 }
-
-
