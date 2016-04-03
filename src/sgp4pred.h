@@ -35,10 +35,10 @@ struct passinfo
   double jdmax;
   double jdtransit;
 
-  double maxelevation; 
+  double maxelevation;
   double minelevation;  //elevation at start and end
   double transitelevation;
-  
+
   double azstart;
   double azmax;
   double azstop;
@@ -46,7 +46,7 @@ struct passinfo
 
   visibletype sight;
   shadowtransit transit;
-  
+
 };
 
 
@@ -54,16 +54,17 @@ struct passinfo
 class Sgp4 {
     char opsmode;
     gravconsttype  whichconst;
-    double ro[3];   
-    double vo[3]; 
+    double ro[3];
+    double vo[3];
     double razel[3];
     double offset; //Min elevation for overpass prediction in radials
+    double sunoffset;  //Min elevation sun for daylight in radials
     double jdC;    //Current used julian date
     double jdCp;    //Current used julian date for prediction
-    
+
     double sgp4wrap( double jdCe);  //returns the elevation for a given julian date
 	double visiblewrap(double jdCe);  //returns angle between sun surface and earth surface
-    
+
   public:
     char satName[25];   ///satellite name
 	char line1[80];     //tle line 1
@@ -73,11 +74,13 @@ class Sgp4 {
     elsetrec satrec;
     double siteLat, siteLon, siteAlt, siteLatRad, siteLonRad;
     double satLat, satLon, satAlt, satAz, satEl, satDist,satJd;
+    double sunAz, sunEl;
 	int16_t satVis;
 
     Sgp4();
     bool init(const char naam[], char longstr1[130], char longstr2[130]);  //initialize parameters from 2 line elements
     void site(double lat, double lon, double alt);  //initialize site latitude[degrees],longitude[degrees],altitude[meters]
+    void setsunrise(double degrees);   //change the elevation that the sun needs to make it daylight
 
     void findsat(double jdI);     //find satellite position from julian date
     void findsat(unsigned long);  //find satellite position from unix time

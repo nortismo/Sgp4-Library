@@ -24,11 +24,13 @@ Written by Hopperpop
 Sgp4::Sgp4(){
    opsmode = 'i';  //improved mode
    whichconst = wgs84;   //newest constants
+   sunoffset = -0.10471975511966; //sun aboven -6°  => not dark enough
+   offset = 0.0;
 }
 
 ///Init functions/////
 bool Sgp4::init(const char naam[24], char longstr1[130], char longstr2[130]){
-  
+
   if (strcmp(longstr1, line1) == 0) {
 	  return false;
   }
@@ -46,23 +48,28 @@ bool Sgp4::init(const char naam[24], char longstr1[130], char longstr2[130]){
 
 //set site coordinates
 void Sgp4::site(double lat, double lon, double alt){
-  siteLat = lat; 
-  siteLon = lon; 
+  siteLat = lat;
+  siteLon = lon;
   siteAlt = alt / 1000; //meters to kilometers
   siteLatRad = siteLat * pi / 180.0;
   siteLonRad = siteLon * pi / 180.0;
 }
 
+///set sunoffset
+void Sgp4::setsunrise(double degrees){
+  sunoffset = degrees * pi / 180.0;
+}
+
 ////Location functions/////
-void Sgp4::findsat(double jdI){  
+void Sgp4::findsat(double jdI){
 
   double latlongh[3];
   double recef[3];
   double vecef[3];
   double razelrates[3];
-  
+
   jdC = jdI;
-  
+
   double tsince = (jdC - satrec.jdsatepoch) * 24.0 * 60.0;
   sgp4(whichconst, satrec, tsince, ro, vo);
   rv2azel(ro, siteLatRad, siteLonRad, siteAlt, jdC, razel);
@@ -77,11 +84,11 @@ void Sgp4::findsat(double jdI){
   satDist = razel[0];  //Distance to sattelite (km)
   satJd = jdI;  //time (julian day)
 
-  if (satEl > 0.0) {
-	  satVis = visible();
+  satVis = visible();
+  if (satEl < 0.0) {
+      satVis = -2; //under horizon
   }
-  else { satVis = -2; }  //under horizon
-  
+
 }
 
 void Sgp4::findsat(unsigned long unix){
@@ -95,11 +102,11 @@ void Sgp4::findsat(unsigned long unix){
 double Sgp4::sgp4wrap( double jdCe){
 
     double tsince = (jdCe - satrec.jdsatepoch) * 24.0 * 60.0;
-    
+
     sgp4(whichconst, satrec, tsince, ro, vo);
     rv2azel(ro, siteLatRad, siteLonRad, siteAlt, jdCe, razel);
     return -razel[2]+offset;
-    
+
 }
 
 
@@ -110,7 +117,7 @@ bool Sgp4::nextpass(passinfo* passdata, int itterations) {
 
 // returns next overpass maximum, starting from a maximum called startpoint
 bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
-    
+
     double range,jump;
     int i;
     double max_elevation = -1.0;
@@ -126,7 +133,7 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
 	else {
 		jump = 1.0 / revpday;
 	}
-    
+
     for (i = 0; i < itterations && max_elevation <= 0.0; i++){ //search for elevation aboven zero
        jdCp+= jump;
        max_elevation = - brentmin(jdCp - range , jdCp, jdCp + range, &Sgp4::sgp4wrap , tol, &jdCp, this);
@@ -142,7 +149,7 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
     (*passdata).maxelevation = (max_elevation+offset)*180/pi;
     (*passdata).jdmax = jdC;
 	(*passdata).azmax = floatmod(razel[1] * 180 / pi + 360.0, 360.0);
-    
+
 	//start point
 
     range = 0.5/revpday;
@@ -198,15 +205,15 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
 
 // finds a startpoint for the prediction algorithm
 bool Sgp4::initpredpoint( double startpoint, double startelevation){
-    
+
 
     double a,b,c;
     double fa,fb,fc;
     double jdI;
     int i;
 
-    offset = startelevation *pi/180.0; 
-    
+    offset = startelevation *pi/180.0;
+
     c = startpoint;
     fc = sgp4wrap( c  );
     b = startpoint - 0.166/revpday;
@@ -223,9 +230,9 @@ bool Sgp4::initpredpoint( double startpoint, double startelevation){
         fa = sgp4wrap( a );
     }
     if ( i >= MAX_itter-1){
-       return 0; 
+       return 0;
     }
-    
+
     brentmin(a , b, c, &Sgp4::sgp4wrap , tol, &jdI, this);
     jdCp = jdI;
     return 1;
@@ -242,6 +249,3 @@ double Sgp4::getpredpoint() {
 void Sgp4::setpredpoint(double bob) {
 	jdCp = bob;
 }
-
-
-
