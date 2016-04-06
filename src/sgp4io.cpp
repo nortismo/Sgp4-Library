@@ -2,8 +2,8 @@
 *
 *                               sgp4io.cpp
 *
-*    this file contains a function to read two line element sets. while 
-*    not formerly part of the sgp4 mathematical theory, it is 
+*    this file contains a function to read two line element sets. while
+*    not formerly part of the sgp4 mathematical theory, it is
 *    required for practical implemenation.
 *
 *                            companion code for
@@ -50,7 +50,7 @@
 *  inputs        :
 *    longstr1    - first line of the tle
 *    longstr2    - second line of the tle
-*    typerun     - type of run                    verification 'v', catalog 'c', 
+*    typerun     - type of run                    verification 'v', catalog 'c',
 *                                                 manual 'm'
 *    typeinput   - type of manual input           mfe 'm', epoch 'e', dayofyr 'd'
 *    opsmode     - mode of operation afspc or improved 'a', 'i'
@@ -72,7 +72,7 @@
 
 void twoline2rv
      (
-      char      longstr1[130], char longstr2[130], 
+      char      longstr1[130], char longstr2[130],
       char opsmode, gravconsttype       whichconst,
       elsetrec& satrec
      )
@@ -131,7 +131,7 @@ void twoline2rv
                        &satrec.epochdays,&satrec.ndot, &satrec.nddot, &nexp, &satrec.bstar,
                        &ibexp, &numb, &elnum );
        **/
-                       
+
        //memcpy( tempstr, &longstr1[0] , 2); tempstr[1] = '\0'; satrec.cardnumb = atoi(tempstr);
        memcpy( tempstr, &longstr1[2] , 5); tempstr[5] = '\0'; satrec.satnum = atol(tempstr);
        //classification = longstr1[7];
@@ -154,8 +154,8 @@ void twoline2rv
        memcpy( tempstr, &longstr2[42] , 9); tempstr[9] = '\0'; satrec.mo = atof(tempstr);
        memcpy( tempstr, &longstr2[51] , 11); tempstr[10] = '\0'; satrec.no = atof(tempstr);
        //memcpy( tempstr, &longstr2[63] , 6); tempstr[6] = '\0'; revnum = atol(tempstr);
-       
-       
+
+
 
        // ---- find no, ndot, nddot ----
        satrec.no   = satrec.no / xpdotp; //* rad/min
@@ -253,4 +253,58 @@ void twoline2rv
                  satrec.nodeo, satrec);
     } // end twoline2rv
 
+/* -----------------------------------------------------------------------------
+*
+*                           function twolineChecksum
+*
+*  this function checks if the checksum on the end of the line is correct.
+*
+*  author        : Hopperpop                  6 mar 2016
+*
+*  inputs        :
+*    longstr    -  line of the tle
+*
+*  outputs       :
+*    bool        -  true if test was succesfull
+*
+*  references    :
+*    https://en.wikipedia.org/wiki/Two-line_element_set
+  --------------------------------------------------------------------------- */
+bool twolineChecksum
+     (
+      const char      longstr[80]
+     )
+{
 
+    unsigned int cks = 0;
+    const char* checksumpointer = longstr + 68;
+
+    for (const char* p = longstr; p < checksumpointer; p++){
+
+        switch(*p){
+            case 0:
+              return false;
+              break;
+            case '-':
+              cks++;
+              break;
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+              cks += *p - '0';
+              break;
+        }
+
+    }
+    cks %= 10;   //modulo 10
+    if (cks + '0' == *checksumpointer)
+      return true;
+
+    return false;
+}

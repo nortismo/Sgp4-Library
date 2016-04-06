@@ -4,8 +4,8 @@
 *
 *                                 sgp4io.h;
 *
-*    this file contains a function to read two line element sets. while 
-*    not formerly part of the sgp4 mathematical theory, it is 
+*    this file contains a function to read two line element sets. while
+*    not formerly part of the sgp4 mathematical theory, it is
 *    required for practical implemenation.
 *
 *                            companion code for
@@ -40,6 +40,8 @@ void twoline2rv
       elsetrec& satrec
      );
 
-
+ bool twolineChecksum
+      (
+       const char      longstr[]
+      );
 #endif
-
