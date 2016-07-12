@@ -722,7 +722,7 @@ void    invjday
      /* ----------------- find remaing data  ------------------------- */
      days2mdhms(year, days, mon, day, hr, minute, sec);
 	 if (daylightsaving && summertime(year, mon, day, hr, timezone)) {
-		 days2mdhms(year, days + (double)timezone/24.0, mon, day, hr, minute, sec);
+		 days2mdhms(year, days + 1.0/24.0, mon, day, hr, minute, sec);
 	 }
      sec = sec - 0.00000086400;
    }  // end invjday
@@ -747,4 +747,3 @@ bool summertime(int year, int month, int day, int hour, int tzHours)
 	else
 		return false;
 }
-
