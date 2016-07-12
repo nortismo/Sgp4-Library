@@ -2,6 +2,7 @@ Sgp4	KEYWORD1
 
 init	KEYWORD2
 site	KEYWORD2
+setsunrise	KEYWORD2
 findsat	KEYWORD2
 nextpass	KEYWORD2
 initpredpoint	KEYWORD2
