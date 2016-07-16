@@ -121,9 +121,9 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
     double range,jump;
     int i;
     double max_elevation = -1.0;
-	int16_t vis;
-	bool startdaylight, stopdaylight;
-	double startphi, stopphi;
+	int16_t vissum,vis;
+	bool isdaylight;
+	double startphi, stopphi,phi;
 
     range = 0.25/revpday;
 
@@ -148,7 +148,12 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
 
     (*passdata).maxelevation = (max_elevation+offset)*180/pi;
     (*passdata).jdmax = jdC;
-	(*passdata).azmax = floatmod(razel[1] * 180 / pi + 360.0, 360.0);
+	  (*passdata).azmax = floatmod(razel[1] * 180 / pi + 360.0, 360.0);
+    vis = visible(isdaylight,phi);
+
+    if (isdaylight)	{(*passdata).vismax = daylight;}
+    else if (vis < 1000){(*passdata).vismax = eclipsed;}
+    else {(*passdata).vismax = lighted;}
 
 	//start point
 
@@ -157,7 +162,12 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
     if (jdC < 0.0) return 0;
     (*passdata).jdstart = jdC;
     (*passdata).azstart = floatmod(razel[1] * 180 / pi + 360.0, 360.0);
-    vis = visible(startdaylight,startphi);
+    vis = visible(isdaylight,startphi);
+
+    if (isdaylight)	{(*passdata).visstart = daylight;}
+    else if (vis < 1000){(*passdata).visstart = eclipsed;}
+    else {(*passdata).visstart = lighted;}
+    vissum = vis;
 
 	//stop point
 
@@ -165,13 +175,18 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
     if (jdC < 0.0) return 0;
     (*passdata).jdstop = jdC;
     (*passdata).azstop = floatmod(razel[1] * 180 / pi + 360.0, 360.0);
-    vis += visible(stopdaylight,stopphi);
+    vis = visible(isdaylight,stopphi);
 
-	//visibility
+    if (isdaylight)	{(*passdata).visstop = daylight;}
+    else if (vis < 1000){(*passdata).visstop = eclipsed;}
+    else {(*passdata).visstop = lighted;}
+    vissum += vis;
 
-    if (stopdaylight && startdaylight)	{(*passdata).sight = daylight;}
-    else if (vis < 1000)				{(*passdata).sight = eclipsed;}
-	else								{(*passdata).sight = lighted;}
+	//global visibility
+
+    if ((*passdata).visstop == daylight && (*passdata).visstart == daylight)	{(*passdata).sight = daylight;}
+    else if (vissum < 1000){(*passdata).sight = eclipsed;}
+	  else {(*passdata).sight = lighted;}
 
 	//transit
 
@@ -180,6 +195,7 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
 		(*passdata).jdtransit = NAN;
 		(*passdata).aztransit = NAN;
 		(*passdata).transitelevation = NAN;
+    (*passdata).vistransit = daylight;
 	}
 	else {
 		if (sgn(startphi)>sgn(stopphi)) {
@@ -194,6 +210,11 @@ bool Sgp4::nextpass( passinfo* passdata, int itterations, bool direc){
 		(*passdata).jdtransit = jdC;
 		(*passdata).aztransit = floatmod(razel[1] * 180 / pi + 360.0, 360.0);
 		(*passdata).transitelevation = razel[2] * 180 / pi;
+    vis = visible(isdaylight,phi);
+
+    if (isdaylight)	{(*passdata).vistransit = daylight;}
+    else {(*passdata).vistransit = eclipsed;}
+    //else {(*passdata).visstop = lighted;}
 	}
 
 

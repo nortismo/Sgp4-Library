@@ -44,6 +44,11 @@ struct passinfo
   double azstop;
   double aztransit;
 
+  visibletype visstart;
+  visibletype visstop;
+  visibletype vismax;
+  visibletype vistransit;
+
   visibletype sight;
   shadowtransit transit;
 
@@ -69,7 +74,7 @@ class Sgp4 {
     char satName[25];   ///satellite name
 	char line1[80];     //tle line 1
 	char line2[80];     //tle line 2
-    
+
     double revpday;  ///revolutions per day
     elsetrec satrec;
     double siteLat, siteLon, siteAlt, siteLatRad, siteLonRad;
