@@ -77,7 +77,7 @@ void twoline2rv
       elsetrec& satrec
      )
      {
-       char tempstr[12];
+       char tempstr[13];
        const double deg2rad  =   pi / 180.0;         //   0.0174532925199433
        const double xpdotp   =  1440.0 / (2.0 *pi);  // 229.1831180523293
 
