@@ -1,6 +1,6 @@
 # Sgp4-Library
 Library for calculating satellite positions and predicting overpasses.
-Currently only support for ESP8266.
+Tested on an ESP8266 and ESP32.
 
 # Credits
 Original source code written by David Vallado: https://celestrak.com/software/vallado-sw.asp  
