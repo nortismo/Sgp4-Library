@@ -5,7 +5,6 @@ Most functions are based on the columns written by Dr. T.S. Kelso on the celestr
 Written by Hopperpop
 */
 
-#include <Arduino.h>
 #include "sgp4ext.h"
 #include "sgp4unit.h"
 #include "sgp4io.h"
@@ -35,9 +34,9 @@ bool Sgp4::init(const char naam[24], char longstr1[130], char longstr2[130]){
 	  return false;
   }
 
-  strlcpy(satName, naam, sizeof(satName));
-  strlcpy(line1, longstr1, sizeof(line1));
-  strlcpy(line2, longstr2, sizeof(line2));
+  strncpy(satName, naam, sizeof(satName));
+  strncpy(line1, longstr1, sizeof(line1));
+  strncpy(line2, longstr2, sizeof(line2));
 
   twoline2rv(longstr1, longstr2, opsmode, whichconst, satrec );
 
@@ -112,7 +111,7 @@ double Sgp4::sgp4wrap( double jdCe){
 
 // returns next overpass maximum, starting from a maximum called startpoint
 bool Sgp4::nextpass(passinfo* passdata, int itterations) {
-	Sgp4::nextpass( passdata, itterations, false);
+	return Sgp4::nextpass( passdata, itterations, false);
 }
 
 // returns next overpass maximum, starting from a maximum called startpoint
